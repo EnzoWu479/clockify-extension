@@ -10,6 +10,8 @@ import {
 	formatMinutesToHM,
 	useClockifyExportText,	
 } from "@/hooks/useClockifyExportText";
+import { useClockifyRhExportText } from "@/hooks/useClockifyRhExportText";
+import { useToast } from "@/hooks/useToast";
 import { ApiKeySection } from "./components/ApiKeySection";
 import { DaySummaryHeader } from "./components/DaySummaryHeader";
 import { DateControls } from "./components/DateControls";
@@ -48,6 +50,7 @@ export default function Home() {
 		useClockifyExportSettings();
 
 	const {
+		entries,
 		selectedDate,
 		setSelectedDate,
 		isLoadingEntries,
@@ -62,12 +65,14 @@ export default function Home() {
 
 	const { upsertMapping, getExcelValueForProjectName } = useProjectMappings();
 
-	const { exportText, copyStatus, handleCopyToClipboard, setCopyStatus } =
-		useClockifyExportText({
+	const { exportText } = useClockifyExportText({
 			groupedEntries,
 			hoursColumnIndex,
 			getExcelValueForProjectName,
 		});
+
+	const { rhText } = useClockifyRhExportText(entries);
+	const { toast, showToast, clearToast } = useToast();
 
 	function handleUseKey(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -77,21 +82,43 @@ export default function Home() {
 	function handleClearKey() {
 		clearKey();
 		clearEntries();
-		setCopyStatus("idle");
+		clearToast();
 	}
 
 	function handleChangeDate(offsetDays: number) {
-		setCopyStatus("idle");
+		clearToast();
 		changeDate(offsetDays);
 	}
 
 	async function handleLoadEntries() {
-		setCopyStatus("idle");
+		clearToast();
 		await loadEntries();
 	}
 
 	function handleHoursColumnChange(rawValue: number) {
 		updateHoursColumn(rawValue);
+	}
+
+	async function copyTextToClipboard(text: string) {
+		if (!text) return;
+		if (typeof navigator === "undefined" || !navigator.clipboard) {
+			showToast("error", "Clipboard API indisponível");
+			return;
+		}
+		try {
+			await navigator.clipboard.writeText(text);
+			showToast("success", "Copiado para a área de transferência.");
+		} catch {
+			showToast("error", "Não foi possível copiar automaticamente.");
+		}
+	}
+
+	async function handleCopyProject() {
+		await copyTextToClipboard(exportText);
+	}
+
+	async function handleCopyRh() {
+		await copyTextToClipboard(rhText);
 	}
 
 	return (
@@ -137,9 +164,10 @@ export default function Home() {
 							<DaySummaryHeader
 								totalLabel={formatMinutesToHM(totalMinutes)}
 								dateLabel={formatDateLabel(selectedDate)}
-								copyStatus={copyStatus}
-								canCopy={Boolean(exportText)}
-								onCopy={handleCopyToClipboard}
+								canCopyProject={Boolean(exportText)}
+								onCopyProject={handleCopyProject}
+								canCopyRh={Boolean(rhText)}
+								onCopyRh={handleCopyRh}
 							/>
 							<DateControls
 								selectedDate={selectedDate}
@@ -174,6 +202,18 @@ export default function Home() {
 							/>
 						</div>
 					</section>
+
+					{toast && (
+						<div
+							className={`fixed bottom-4 right-4 z-50 rounded-xl border bg-slate-900/95 px-4 py-2 text-xs shadow-[0_0_25px_rgba(34,211,238,0.25)] ${
+								toast.variant === "success"
+									? "border-emerald-400/70 text-emerald-100 shadow-[0_0_25px_rgba(16,185,129,0.6)]"
+									: "border-rose-400/70 text-rose-100 shadow-[0_0_25px_rgba(248,113,113,0.6)]"
+							}`}
+						>
+							{toast.message}
+						</div>
+					)}
 				</div>
 			</main>
 		</div>

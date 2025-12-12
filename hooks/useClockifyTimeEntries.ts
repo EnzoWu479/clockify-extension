@@ -193,6 +193,7 @@ export function useClockifyTimeEntries({
   }
 
   return {
+    entries,
     selectedDate,
     setSelectedDate,
     isLoadingEntries,
