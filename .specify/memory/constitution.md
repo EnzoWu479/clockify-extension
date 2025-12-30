@@ -1,50 +1,81 @@
-# [PROJECT_NAME] Constitution
+<!--
+Sync Impact Report
+- Version change: template -> 0.1.0
+- Modified principles: N/A
+- Added sections:
+  - Core Principles (conteúdo completo)
+  - Project Constraints
+  - Development Workflow
+- Removed sections: N/A
+- Templates requiring updates:
+  - ⚠ .specify/templates/plan-template.md (referência a `.specify/templates/commands/plan.md` não existe no repo)
+  - ✅ .specify/templates/spec-template.md
+  - ✅ .specify/templates/tasks-template.md
+  - ✅ .specify/templates/checklist-template.md
+- Follow-up TODOs:
+  - TODO(RATIFICATION_DATE): data de ratificação original não foi encontrada no repositório
+-->
+
+# clockify-extension Constitution
 <!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. UI por responsabilidade (componentes sem lógica)
+Componentes React MUST ser primariamente de apresentação e composição.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- Componentes MUST receber dados e callbacks por props.
+- Componentes MUST NOT conter regras de negócio, orquestração de chamadas, ou persistência.
+- Side-effects, coordenação de estado e regras de negócio MUST viver fora do componente.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Lógica em custom hooks (separados por responsabilidade)
+Qualquer lógica reaproveitável e/ou não-trivial MUST ser extraída para custom hooks.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- Hooks MUST ser separados por responsabilidade (um hook = uma intenção clara).
+- Hooks MUST expor uma API pequena e previsível (estado, ações, status e erros).
+- Hooks MUST NOT depender de detalhes de UI (ex.: elementos DOM específicos), exceto quando o propósito for UI (ex.: focus/keyboard).
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Testabilidade obrigatória (hooks e regras)
+Custom hooks e funções puras de domínio MUST ser testáveis de forma isolada.
 
-## [SECTION_2_NAME]
+- Hooks MUST permitir testes sem rede e sem IO real (usar injeção de dependências/adapters quando necessário).
+- Regras de negócio MUST ser extraídas para funções puras quando possível.
+- Todo bug fix ou feature com lógica MUST incluir testes que cubram cenários críticos.
+
+### IV. Arquitetura por camadas (domínio/infra/UI)
+O repositório MUST manter separação clara entre domínio, infraestrutura e UI.
+
+- Regras de domínio MUST viver em módulos de domínio.
+- Acesso a storage, APIs externas e browser APIs MUST ser encapsulado em infraestrutura.
+- UI MUST consumir hooks/serviços, não reimplementar regras.
+
+### V. Simplicidade e previsibilidade
+Preferir implementações simples, explícitas e fáceis de inspecionar.
+
+- Evitar acoplamento oculto e estados globais não rastreáveis.
+- Evitar abstrações sem necessidade (YAGNI).
+
+## Project Constraints
 <!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Plataforma alvo: Next.js (App Router) com TypeScript.
+- Persistência local e integrações MUST ser encapsuladas em camadas/serviços/hook.
 
-## [SECTION_3_NAME]
+## Development Workflow
 <!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- PRs MUST validar aderência aos princípios acima.
+- Mudanças que introduzem lógicas novas MUST atualizar/introduzir testes.
 
 ## Governance
 <!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Esta constituição define regras não-negociáveis para arquitetura e qualidade.
+- Emendas MUST atualizar o **Version** com SemVer:
+  - MAJOR: remoção/redefinição incompatível de princípios ou governança
+  - MINOR: adição de novo princípio/seção ou expansão material
+  - PATCH: ajustes editoriais/clareza sem impacto material
+- Toda emenda MUST incluir um Sync Impact Report no topo deste arquivo.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
+**Version**: 0.1.0 | **Ratified**: TODO(RATIFICATION_DATE): data original desconhecida | **Last Amended**: 2025-12-15
 <!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->

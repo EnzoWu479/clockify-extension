@@ -16,15 +16,25 @@ type UseClockifyExportTextParams = {
   groupedEntries: GroupedEntry[];
   hoursColumnIndex: number;
   getExcelValueForProjectName: (name: string) => string | undefined;
+  allowedProjectNames?: string[];
 };
 
 export function useClockifyExportText({
   groupedEntries,
   hoursColumnIndex,
   getExcelValueForProjectName,
+  allowedProjectNames,
 }: UseClockifyExportTextParams) {
   const exportText = useMemo(() => {
     if (groupedEntries.length === 0) return "";
+
+    let entries = groupedEntries;
+    
+    if (allowedProjectNames && allowedProjectNames.length > 0) {
+      entries = entries.filter(entry => 
+        allowedProjectNames.includes(entry.projectName ?? '')
+      );
+    }
 
     // coluna 1 = descrição, coluna 2 = projeto, colunas 3..N-1 vazias, coluna N = horas
     const safeColumn = Number.isFinite(hoursColumnIndex)
@@ -34,7 +44,7 @@ export function useClockifyExportText({
     const projectTabs = 1; // sempre 1 TAB entre descrição e projeto
     const remainingTabs = Math.max(totalTabs - projectTabs, 0);
 
-    const lines = groupedEntries.map((entry) => {
+    const lines = entries.map((entry) => {
       const duration = formatMinutesToHM(entry.totalMinutes);
       const description = entry.description || "";
       const rawProjectName = entry.projectName ?? "";
@@ -47,7 +57,7 @@ export function useClockifyExportText({
     });
 
     return lines.join("\n");
-  }, [groupedEntries, getExcelValueForProjectName, hoursColumnIndex]);
+  }, [groupedEntries, getExcelValueForProjectName, hoursColumnIndex, allowedProjectNames]);
 
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
 

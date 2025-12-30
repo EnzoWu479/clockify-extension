@@ -1,5 +1,9 @@
 "use client";
 
+import type { ExportProfile } from "@/src/domain/export-profile";
+import { ProfileManager } from "./ProfileManager";
+import type { ProfileFormData } from "./ProfileForm";
+
 type ExportSettingsProps = {
   show: boolean;
   onToggle: () => void;
@@ -8,6 +12,15 @@ type ExportSettingsProps = {
   projectNames: string[];
   getExcelValueForProjectName: (name: string) => string | undefined;
   onUpsertMapping: (clockifyProjectName: string, excelValue: string) => void;
+  profiles: ExportProfile[];
+  activeProfileId: string | null;
+  isLoadingProfiles: boolean;
+  profileError: string | null;
+  onCreateProfile: (data: ProfileFormData) => Promise<void>;
+  onUpdateProfile: (id: string, data: ProfileFormData) => Promise<void>;
+  onDeleteProfile: (id: string) => Promise<void>;
+  onSetActiveProfile: (profileId: string | null) => Promise<void>;
+  onClearProfileError: () => void;
 };
 
 export function ExportSettings({
@@ -18,6 +31,15 @@ export function ExportSettings({
   projectNames,
   getExcelValueForProjectName,
   onUpsertMapping,
+  profiles,
+  activeProfileId,
+  isLoadingProfiles,
+  profileError,
+  onCreateProfile,
+  onUpdateProfile,
+  onDeleteProfile,
+  onSetActiveProfile,
+  onClearProfileError,
 }: ExportSettingsProps) {
   return (
     <div className="mt-4 rounded-xl border border-slate-800/90 bg-slate-950/70 p-3 text-[0.7rem] text-slate-300">
@@ -35,6 +57,20 @@ export function ExportSettings({
       </button>
       {show && (
         <div className="mt-3 space-y-3">
+          <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
+            <ProfileManager
+              profiles={profiles}
+              activeProfileId={activeProfileId}
+              availableProjects={projectNames}
+              isLoading={isLoadingProfiles}
+              error={profileError}
+              onCreateProfile={onCreateProfile}
+              onUpdateProfile={onUpdateProfile}
+              onDeleteProfile={onDeleteProfile}
+              onSetActiveProfile={onSetActiveProfile}
+              onClearError={onClearProfileError}
+            />
+          </div>
           <div className="flex items-center justify-between gap-3">
             <div className="text-[0.7rem] text-slate-400">
               <p className="font-medium text-slate-200">
