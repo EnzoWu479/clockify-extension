@@ -7,6 +7,7 @@ type DaySummaryHeaderProps = {
   onCopyProject: () => void;
   canCopyRh: boolean;
   onCopyRh: () => void;
+  activeProfileName?: string;
 };
 
 export function DaySummaryHeader({
@@ -16,12 +17,18 @@ export function DaySummaryHeader({
   onCopyProject,
   canCopyRh,
   onCopyRh,
+  activeProfileName,
 }: DaySummaryHeaderProps) {
   return (
     <>
       <h2 className="flex flex-col gap-1 text-sm font-semibold text-slate-200 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <span>This week</span>
+          {activeProfileName && (
+            <span className="text-[0.7rem] font-normal text-purple-400">
+              Perfil: {activeProfileName}
+            </span>
+          )}
           <span className="text-[0.7rem] font-normal text-slate-400">
             Total do dia:
             <span className="ml-1 font-semibold text-slate-100">

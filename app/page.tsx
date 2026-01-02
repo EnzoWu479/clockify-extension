@@ -12,6 +12,9 @@ import {
 } from "@/hooks/useClockifyExportText";
 import { useClockifyRhExportText } from "@/hooks/useClockifyRhExportText";
 import { useToast } from "@/hooks/useToast";
+import { useExportProfiles } from "@/hooks/useExportProfiles";
+import { useActiveProfile } from "@/hooks/useActiveProfile";
+import type { ProfileFormData } from "./components/ProfileForm";
 import { ApiKeySection } from "./components/ApiKeySection";
 import { DaySummaryHeader } from "./components/DaySummaryHeader";
 import { DateControls } from "./components/DateControls";
@@ -65,10 +68,29 @@ export default function Home() {
 
 	const { upsertMapping, getExcelValueForProjectName } = useProjectMappings();
 
+	const {
+		profiles,
+		isLoading: isLoadingProfiles,
+		error: profileError,
+		createProfile,
+		updateProfile,
+		deleteProfile,
+		clearError: clearProfileError,
+	} = useExportProfiles();
+
+	const {
+		activeProfileId,
+		setActiveProfile,
+		getActiveProfile,
+	} = useActiveProfile();
+
+	const activeProfile = getActiveProfile(profiles);
+
 	const { exportText } = useClockifyExportText({
 			groupedEntries,
-			hoursColumnIndex,
+			hoursColumnIndex: activeProfile?.hoursColumnIndex ?? hoursColumnIndex,
 			getExcelValueForProjectName,
+			allowedProjectNames: activeProfile?.projectNames,
 		});
 
 	const { rhText } = useClockifyRhExportText(entries);
@@ -121,6 +143,25 @@ export default function Home() {
 		await copyTextToClipboard(rhText);
 	}
 
+	async function handleCreateProfile(data: ProfileFormData) {
+		await createProfile(data);
+	}
+
+	async function handleUpdateProfile(id: string, data: ProfileFormData) {
+		await updateProfile(id, data);
+	}
+
+	async function handleDeleteProfile(id: string) {
+		const result = await deleteProfile(id);
+		if (result.wasActive) {
+			showToast("success", "Perfil excluído. Usando configuração padrão.");
+		}
+	}
+
+	async function handleSetActiveProfile(profileId: string | null) {
+		await setActiveProfile(profileId);
+	}
+
 	return (
 		<div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
 			<main className="relative w-full max-w-4xl rounded-3xl border border-slate-800/80 bg-slate-950/60 p-8 md:p-10 shadow-[0_0_80px_rgba(56,189,248,0.25)] overflow-hidden">
@@ -168,6 +209,7 @@ export default function Home() {
 								onCopyProject={handleCopyProject}
 								canCopyRh={Boolean(rhText)}
 								onCopyRh={handleCopyRh}
+								activeProfileName={activeProfile?.name}
 							/>
 							<DateControls
 								selectedDate={selectedDate}
@@ -199,6 +241,15 @@ export default function Home() {
 									getExcelValueForProjectName(name) ?? undefined
 								}
 								onUpsertMapping={upsertMapping}
+								profiles={profiles}
+								activeProfileId={activeProfileId}
+								isLoadingProfiles={isLoadingProfiles}
+								profileError={profileError?.message ?? null}
+								onCreateProfile={handleCreateProfile}
+								onUpdateProfile={handleUpdateProfile}
+								onDeleteProfile={handleDeleteProfile}
+								onSetActiveProfile={handleSetActiveProfile}
+								onClearProfileError={clearProfileError}
 							/>
 						</div>
 					</section>
