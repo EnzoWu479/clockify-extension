@@ -53,6 +53,7 @@ export function DateControls({
         </div>
       </div>
       <button
+        id="load-entries-button"
         type="button"
         onClick={onReload}
         disabled={!hasKey || isLoading}

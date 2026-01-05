@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { FormEvent } from "react";
+import { useState } from "react";
 import { useProjectMappings } from "@/hooks/useProjectMappings";
 import { useClockifyApiKey } from "@/hooks/useClockifyApiKey";
 import { useClockifyExportSettings } from "@/hooks/useClockifyExportSettings";
@@ -14,12 +15,18 @@ import { useClockifyRhExportText } from "@/hooks/useClockifyRhExportText";
 import { useToast } from "@/hooks/useToast";
 import { useExportProfiles } from "@/hooks/useExportProfiles";
 import { useActiveProfile } from "@/hooks/useActiveProfile";
+import { useTourState } from "@/hooks/useTourState";
+import { useHelpContent } from "@/hooks/useHelpContent";
 import type { ProfileFormData } from "./components/ProfileForm";
 import { ApiKeySection } from "./components/ApiKeySection";
 import { DaySummaryHeader } from "./components/DaySummaryHeader";
 import { DateControls } from "./components/DateControls";
 import { EntriesList } from "./components/EntriesList";
 import { ExportSettings } from "./components/ExportSettings";
+import { TourOverlay } from "./components/TourOverlay";
+import { HelpTooltip } from "./components/HelpTooltip";
+import { HelpMenu } from "./components/HelpMenu";
+import { FAQModal } from "./components/FAQModal";
 
 function formatTime(iso: string | null): string {
 	if (!iso) return "-";
@@ -95,6 +102,12 @@ export default function Home() {
 
 	const { rhText } = useClockifyRhExportText(entries);
 	const { toast, showToast, clearToast } = useToast();
+	const { shouldShowTour, state, nextStep, skipTour, resetTour } = useTourState();
+	const { getContent } = useHelpContent();
+	
+	const [activeHelpId, setActiveHelpId] = useState<string | null>(null);
+	const [helpAnchorEl, setHelpAnchorEl] = useState<HTMLElement | null>(null);
+	const [isFAQOpen, setIsFAQOpen] = useState(false);
 
 	function handleUseKey(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -162,6 +175,26 @@ export default function Home() {
 		await setActiveProfile(profileId);
 	}
 
+	function handleShowHelp(helpId: string, event: React.MouseEvent<HTMLButtonElement>) {
+		setActiveHelpId(helpId);
+		setHelpAnchorEl(event.currentTarget);
+	}
+
+	function handleCloseHelp() {
+		setActiveHelpId(null);
+		setHelpAnchorEl(null);
+	}
+
+	function handleOpenFAQ() {
+		setIsFAQOpen(true);
+	}
+
+	function handleCloseFAQ() {
+		setIsFAQOpen(false);
+	}
+
+	const activeHelpContent = activeHelpId ? getContent(activeHelpId) : undefined;
+
 	return (
 		<div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
 			<main className="relative w-full max-w-4xl rounded-3xl border border-slate-800/80 bg-slate-950/60 p-8 md:p-10 shadow-[0_0_80px_rgba(56,189,248,0.25)] overflow-hidden">
@@ -181,6 +214,10 @@ export default function Home() {
 									height={30}
 									priority
 								/>
+								<HelpMenu
+									onRestartTour={resetTour}
+									onOpenFAQ={handleOpenFAQ}
+								/>
 							</div>
 							<div>
 								<h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-50">
@@ -197,6 +234,7 @@ export default function Home() {
 							onApiKeyChange={setApiKey}
 							onSubmit={handleUseKey}
 							onClear={handleClearKey}
+							onShowHelp={(e) => handleShowHelp('api-key', e)}
 						/>
 					</header>
 
@@ -250,6 +288,9 @@ export default function Home() {
 								onDeleteProfile={handleDeleteProfile}
 								onSetActiveProfile={handleSetActiveProfile}
 								onClearProfileError={clearProfileError}
+								onShowHelpProfiles={(e) => handleShowHelp('export-profiles', e)}
+								onShowHelpMapping={(e) => handleShowHelp('project-mapping', e)}
+								onShowHelpColumn={(e) => handleShowHelp('hours-column', e)}
 							/>
 						</div>
 					</section>
@@ -265,6 +306,26 @@ export default function Home() {
 							{toast.message}
 						</div>
 					)}
+
+					<TourOverlay
+						run={shouldShowTour}
+						currentStep={state.currentStep}
+						onNext={nextStep}
+						onSkip={skipTour}
+					/>
+
+					{activeHelpContent && (
+						<HelpTooltip
+							content={activeHelpContent}
+							anchorEl={helpAnchorEl}
+							onClose={handleCloseHelp}
+						/>
+					)}
+
+					<FAQModal
+						isOpen={isFAQOpen}
+						onClose={handleCloseFAQ}
+					/>
 				</div>
 			</main>
 		</div>
