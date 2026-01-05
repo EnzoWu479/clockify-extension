@@ -38,6 +38,7 @@ export function DaySummaryHeader({
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
           <button
+            id="copy-project-button"
             type="button"
             onClick={onCopyProject}
             disabled={!canCopyProject}

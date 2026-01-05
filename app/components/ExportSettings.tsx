@@ -3,6 +3,7 @@
 import type { ExportProfile } from "@/src/domain/export-profile";
 import { ProfileManager } from "./ProfileManager";
 import type { ProfileFormData } from "./ProfileForm";
+import { HelpIcon } from "./HelpIcon";
 
 type ExportSettingsProps = {
   show: boolean;
@@ -21,6 +22,9 @@ type ExportSettingsProps = {
   onDeleteProfile: (id: string) => Promise<void>;
   onSetActiveProfile: (profileId: string | null) => Promise<void>;
   onClearProfileError: () => void;
+  onShowHelpProfiles?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onShowHelpMapping?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onShowHelpColumn?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
 export function ExportSettings({
@@ -40,6 +44,9 @@ export function ExportSettings({
   onDeleteProfile,
   onSetActiveProfile,
   onClearProfileError,
+  onShowHelpProfiles,
+  onShowHelpMapping,
+  onShowHelpColumn,
 }: ExportSettingsProps) {
   return (
     <div className="mt-4 rounded-xl border border-slate-800/90 bg-slate-950/70 p-3 text-[0.7rem] text-slate-300">
@@ -58,6 +65,10 @@ export function ExportSettings({
       {show && (
         <div className="mt-3 space-y-3">
           <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-[0.7rem] font-semibold text-slate-200">Perfis de Exportação</p>
+              {onShowHelpProfiles && <HelpIcon onClick={onShowHelpProfiles} />}
+            </div>
             <ProfileManager
               profiles={profiles}
               activeProfileId={activeProfileId}
@@ -73,9 +84,12 @@ export function ExportSettings({
           </div>
           <div className="flex items-center justify-between gap-3">
             <div className="text-[0.7rem] text-slate-400">
-              <p className="font-medium text-slate-200">
-                Coluna de horas no Excel
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-slate-200">
+                  Coluna de horas no Excel
+                </p>
+                {onShowHelpColumn && <HelpIcon onClick={onShowHelpColumn} />}
+              </div>
               <p>
                 Use o número da coluna (A=1, B=2, ...). O texto das horas será gerado nessa coluna.
               </p>
@@ -94,9 +108,12 @@ export function ExportSettings({
             />
           </div>
           <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
-            <p className="text-[0.7rem] font-semibold text-slate-200">
-              De/para de projetos (para Excel)
-            </p>
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-[0.7rem] font-semibold text-slate-200">
+                De/para de projetos (para Excel)
+              </p>
+              {onShowHelpMapping && <HelpIcon onClick={onShowHelpMapping} />}
+            </div>
             {projectNames.length === 0 ? (
               <p className="mt-2 text-[0.7rem] text-slate-500">
                 Carregue um dia com lançamentos para configurar o mapeamento de projetos.

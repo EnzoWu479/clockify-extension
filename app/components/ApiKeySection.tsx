@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent } from "react";
+import { HelpIcon } from "./HelpIcon";
 
 type ApiKeySectionProps = {
   apiKey: string;
@@ -8,6 +9,7 @@ type ApiKeySectionProps = {
   onApiKeyChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onClear: () => void;
+  onShowHelp?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
 export function ApiKeySection({
@@ -16,15 +18,20 @@ export function ApiKeySection({
   onApiKeyChange,
   onSubmit,
   onClear,
+  onShowHelp,
 }: ApiKeySectionProps) {
   return (
     <div className="w-full max-w-xs">
-      <p className="text-xs uppercase tracking-wide text-slate-400 mb-1">
-        Clockify API Key
-      </p>
+      <div className="flex items-center gap-2 mb-1">
+        <p className="text-xs uppercase tracking-wide text-slate-400">
+          Clockify API Key
+        </p>
+        {onShowHelp && <HelpIcon onClick={onShowHelp} />}
+      </div>
       <form onSubmit={onSubmit} className="space-y-2">
         <div className="rounded-xl border-2 border-slate-300/70 bg-slate-900/40 px-3 py-2 shadow-[0_0_25px_rgba(15,23,42,0.8)]">
           <input
+            id="api-key-input"
             type="password"
             value={apiKey}
             onChange={(event) => onApiKeyChange(event.target.value)}
