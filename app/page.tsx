@@ -49,7 +49,7 @@ function formatDateLabel(date: string): string {
 }
 
 export default function Home() {
-  const { apiKey, setApiKey, hasKey, activateKey, clearKey } =
+  const { apiKey, setApiKey, encryptedApiKey, hasKey, activateKey, clearKey } =
     useClockifyApiKey();
 
   const { hoursColumnIndex, showSettings, setShowSettings, updateHoursColumn } =
@@ -67,7 +67,7 @@ export default function Home() {
     changeDate,
     loadEntries,
     clearEntries,
-  } = useClockifyTimeEntries({ apiKey, hasKey });
+  } = useClockifyTimeEntries({ apiKey: encryptedApiKey, hasKey });
 
   const { upsertMapping, getExcelValueForProjectName } = useProjectMappings();
 
@@ -96,7 +96,7 @@ export default function Home() {
   const { rhText } = useClockifyRhExportText(entries);
   const { loadMonthlyRhText, isLoadingMonthly } =
     useClockifyMonthlyRhExportText({
-      apiKey,
+      apiKey: encryptedApiKey,
       hasKey,
       selectedDate,
     });
@@ -109,9 +109,14 @@ export default function Home() {
   const [helpAnchorEl, setHelpAnchorEl] = useState<HTMLElement | null>(null);
   const [isFAQOpen, setIsFAQOpen] = useState(false);
 
-  function handleUseKey(event: FormEvent<HTMLFormElement>) {
+  async function handleUseKey(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    activateKey();
+    try {
+      await activateKey();
+    } catch (error) {
+      console.error("Erro ao ativar chave:", error);
+      showToast("error", "Erro ao processar a chave da API");
+    }
   }
 
   function handleClearKey() {
