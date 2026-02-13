@@ -7,6 +7,9 @@ type DaySummaryHeaderProps = {
   onCopyProject: () => void;
   canCopyRh: boolean;
   onCopyRh: () => void;
+  canCopyMonthlyRh: boolean;
+  onCopyMonthlyRh: () => void;
+  isLoadingMonthlyRh?: boolean;
   activeProfileName?: string;
 };
 
@@ -17,6 +20,9 @@ export function DaySummaryHeader({
   onCopyProject,
   canCopyRh,
   onCopyRh,
+  canCopyMonthlyRh,
+  onCopyMonthlyRh,
+  isLoadingMonthlyRh,
   activeProfileName,
 }: DaySummaryHeaderProps) {
   return (
@@ -54,9 +60,17 @@ export function DaySummaryHeader({
           >
             Copiar para RH
           </button>
+          <button
+            type="button"
+            onClick={onCopyMonthlyRh}
+            disabled={!canCopyMonthlyRh || isLoadingMonthlyRh}
+            className="inline-flex items-center justify-center rounded-full border border-emerald-400/70 bg-slate-950/60 px-4 py-1.5 text-[0.7rem] font-medium text-emerald-200 shadow-[0_0_16px_rgba(16,185,129,0.25)] transition hover:border-emerald-300 hover:text-emerald-50 hover:shadow-[0_0_24px_rgba(16,185,129,0.6)] disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500 disabled:shadow-none"
+          >
+            {isLoadingMonthlyRh ? "Carregando..." : "Copiar Mensal para RH"}
+          </button>
         </div>
       </h2>
       <p className="mt-1 text-xs text-slate-500">{dateLabel}</p>
     </>
   );
- }
+}

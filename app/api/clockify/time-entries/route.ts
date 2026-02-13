@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { decryptApiKey, isEncrypted } from "@/infra/crypto/decryption";
 
 const CLOCKIFY_API_BASE_URL =
   process.env.CLOCKIFY_API_BASE_URL ?? "https://api.clockify.me/api/v1";
@@ -77,11 +78,28 @@ function buildDateRange(date: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const apiKey = request.headers.get("x-clockify-api-key");
+  const encryptedApiKey = request.headers.get("x-clockify-api-key");
 
-  if (!apiKey) {
+  if (!encryptedApiKey) {
     return NextResponse.json(
       { error: "API key do Clockify não informada." },
+      { status: 401 },
+    );
+  }
+
+  // Descriptografa a API key
+  let apiKey: string;
+  try {
+    if (isEncrypted(encryptedApiKey)) {
+      apiKey = decryptApiKey(encryptedApiKey);
+    } else {
+      // Suporte para chaves não criptografadas (retrocompatibilidade temporária)
+      apiKey = encryptedApiKey;
+    }
+  } catch (error) {
+    console.error("Erro ao descriptografar API key:", error);
+    return NextResponse.json(
+      { error: "Chave da API inválida ou corrompida." },
       { status: 401 },
     );
   }
@@ -106,13 +124,10 @@ export async function GET(request: NextRequest) {
         ? error.message
         : "Data inválida.";
 
-    return NextResponse.json(
-      { error: message },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  const cacheKey = buildCacheKey(apiKey, date);
+  const cacheKey = buildCacheKey(encryptedApiKey, date);
   const now = Date.now();
   const cached = timeEntriesCache.get(cacheKey);
   if (cached && cached.expiresAt > now) {
@@ -228,7 +243,7 @@ export async function GET(request: NextRequest) {
         projectId: entry.projectId,
         projectName:
           entry.projectId != null
-            ? projectsById.get(entry.projectId) ?? undefined
+            ? (projectsById.get(entry.projectId) ?? undefined)
             : undefined,
         timeInterval: entry.timeInterval,
       })),

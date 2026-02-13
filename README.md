@@ -2,7 +2,21 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### 1. Setup Environment
+
+First, copy the example environment file and generate RSA keys for API encryption:
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Generate RSA encryption keys
+pnpm generate-keys
+```
+
+This will create `NEXT_PUBLIC_RSA_PUBLIC_KEY` and `RSA_PRIVATE_KEY` in your `.env` file.
+
+### 2. Run the Development Server
 
 ```bash
 npm run dev
@@ -18,7 +32,14 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Security
+
+This project implements RSA-2048 encryption for protecting user API keys:
+- API keys are encrypted before being stored in localStorage
+- Encrypted keys are sent to the backend for decryption
+- Private key never leaves the server
+
+See [docs/SECURITY.md](docs/SECURITY.md) for detailed security architecture.
 
 ## Learn More
 
