@@ -143,45 +143,47 @@ export function useClockifyMonthlyRhExportText({
     try {
       const days = getDaysInMonth(selectedDate);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reseta para início do dia
+      today.setHours(0, 0, 0, 0);
 
-      const results = await Promise.all(
-        days.map(async (day) => {
-          // Se a data for futura, retorna linha vazia sem fazer requisição
-          if (day.getTime() > today.getTime()) {
-            return "\t\t\t";
-          }
+      const parsedDate = new Date(`${selectedDate}T00:00:00`);
+      const year = parsedDate.getFullYear();
+      const month = parsedDate.getMonth() + 1; // 1-based
 
-          const dateStr = day.toISOString().slice(0, 10);
-
-          try {
-            const response = await fetch(
-              `/api/clockify/time-entries?date=${encodeURIComponent(dateStr)}`,
-              {
-                headers: {
-                  "x-clockify-api-key": apiKey.trim(),
-                },
-              },
-            );
-
-            if (!response.ok) {
-              return "\t\t\t"; // Linha vazia com tabs para dias com erro
-            }
-
-            const data = (await response.json()) as { items?: TimeEntry[] };
-            const entries = data.items ?? [];
-
-            if (entries.length > 0) {
-              const dayText = formatDayRhText(entries);
-              return dayText || "\t\t\t"; // Linha vazia com tabs se não houver texto
-            }
-
-            return "\t\t\t"; // Linha vazia com tabs para dias sem registro
-          } catch {
-            return "\t\t\t"; // Linha vazia com tabs para dias com erro
-          }
-        }),
+      // Single request for the entire month — avoids 429 rate-limit errors
+      const response = await fetch(
+        `/api/clockify/monthly-time-entries?year=${year}&month=${month}`,
+        {
+          headers: {
+            "x-clockify-api-key": apiKey.trim(),
+          },
+        },
       );
+
+      if (!response.ok) {
+        throw new Error(`Erro ao carregar dados mensais (${response.status})`);
+      }
+
+      const data = (await response.json()) as {
+        byDate?: Record<string, TimeEntry[]>;
+      };
+      const byDate = data.byDate ?? {};
+
+      const results = days.map((day) => {
+        // Future days: return empty tabs without attempting a request
+        if (day.getTime() > today.getTime()) {
+          return "\t\t\t";
+        }
+
+        const dateKey = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+        const entries: TimeEntry[] = byDate[dateKey] ?? [];
+
+        if (entries.length > 0) {
+          const dayText = formatDayRhText(entries);
+          return dayText || "\t\t\t";
+        }
+
+        return "\t\t\t";
+      });
 
       return results.join("\n");
     } catch (error: unknown) {
